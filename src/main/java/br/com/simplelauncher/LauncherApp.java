@@ -182,24 +182,25 @@ public final class LauncherApp {
         addAccountButton.addActionListener(event -> addAccount());
         removeAccountButton.addActionListener(event -> removeSelectedAccount());
 
-        JPanel accountPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
-        accountPanel.setBackground(TOMATE_PINK);
-        accountPanel.add(accountBox);
-        accountPanel.add(addAccountButton);
-        accountPanel.add(removeAccountButton);
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
+        rightPanel.setBackground(TOMATE_PINK);
+        rightPanel.add(accountBox);
+        rightPanel.add(addAccountButton);
+        rightPanel.add(removeAccountButton);
+        rightPanel.add(settingsButton);
 
         JPanel playPanel = new JPanel(new BorderLayout(4, 4));
         playPanel.setBackground(TOMATE_PINK);
         playPanel.add(playButton, BorderLayout.CENTER);
         playPanel.add(statusPanel(), BorderLayout.SOUTH);
 
-        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
-        leftPanel.setBackground(TOMATE_PINK);
-        leftPanel.add(settingsButton);
+        JPanel leftPanel = new JPanel();
+        leftPanel.setOpaque(false);
+        leftPanel.setPreferredSize(new Dimension(rightPanel.getPreferredSize().width, 1));
 
         panel.add(leftPanel, left);
         panel.add(playPanel, center);
-        panel.add(accountPanel, right);
+        panel.add(rightPanel, right);
         return panel;
     }
 
