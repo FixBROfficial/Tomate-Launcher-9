@@ -38,6 +38,7 @@ import java.nio.file.Paths;
 public final class LauncherApp {
     private static final Color TOMATE_PINK = Color.decode("#c85398");
     private static final Color TOMATE_LIGHT_PINK = Color.decode("#f8d8ea");
+    private static final Color TOMATE_SOFT_PINK = Color.decode("#df8ebd");
     private final Path root = Paths.get("").toAbsolutePath();
     private final Config config;
     private final AccountStore accounts;
@@ -117,7 +118,7 @@ public final class LauncherApp {
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                     int h = Math.max(getHeight(), 1);
                     float[] fractions = { 0.0f, 0.15f, 0.35f, 1.0f };
-                    Color[] colors = { Color.WHITE, Color.WHITE, TOMATE_PINK, TOMATE_PINK };
+                    Color[] colors = { Color.WHITE, Color.WHITE, TOMATE_SOFT_PINK, TOMATE_SOFT_PINK };
                     LinearGradientPaint gp = new LinearGradientPaint(0, 0, 0, h, fractions, colors);
                     g2.setPaint(gp);
                     g2.fillRect(0, 0, getWidth(), h);
