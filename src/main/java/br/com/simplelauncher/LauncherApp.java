@@ -143,10 +143,17 @@ public final class LauncherApp {
         logoLabel.setFont(logoLabel.getFont().deriveFont(Font.BOLD, 22f));
         logoLabel.setForeground(Color.WHITE);
         panel.add(logoLabel, BorderLayout.NORTH);
+
+        JPanel titleBar = new JPanel(new BorderLayout());
+        titleBar.setBackground(Color.BLACK);
+        titleBar.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
+
         JLabel title = new JLabel("Changelog", JLabel.CENTER);
         title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
         title.setForeground(Color.WHITE);
-        panel.add(title, BorderLayout.SOUTH);
+
+        titleBar.add(title, BorderLayout.CENTER);
+        panel.add(titleBar, BorderLayout.SOUTH);
         return panel;
     }
 
