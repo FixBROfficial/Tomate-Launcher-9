@@ -49,7 +49,6 @@ public final class LauncherApp {
     private final JButton addAccountButton = new JButton("Offline account");
     private final JButton removeAccountButton = new JButton("Delete");
     private final JButton settingsButton = new JButton("Settings");
-    private final JButton openFolderButton = new JButton("Open .paradise");
     private final JProgressBar progressBar = new JProgressBar();
     private final JLabel statusLabel = new JLabel(" ");
     private final JLabel logoLabel = new JLabel("Tomate Launcher", JLabel.CENTER);
@@ -160,7 +159,6 @@ public final class LauncherApp {
         GridBagConstraints right = constraints(2, 0, 0.25, GridBagConstraints.EAST);
 
         settingsButton.addActionListener(event -> openSettings());
-        openFolderButton.addActionListener(event -> openMinecraftFolder());
 
         playButton.setPreferredSize(new Dimension(220, 54));
         playButton.setFont(playButton.getFont().deriveFont(Font.BOLD, 22f));
@@ -197,7 +195,6 @@ public final class LauncherApp {
 
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
         leftPanel.setBackground(TOMATE_PINK);
-        leftPanel.add(openFolderButton);
         leftPanel.add(settingsButton);
 
         panel.add(leftPanel, left);
@@ -328,8 +325,15 @@ public final class LauncherApp {
     private void openSettings() {
         JTextField javaPathField = new JTextField(config.get("java.path"), 28);
         JTextField javaArgsField = new JTextField(config.get("java.args"), 28);
-        JTextField minecraftDirField = new JTextField(config.get("minecraft.dir"), 28);
+        JTextField minecraftDirField = new JTextField(config.get("minecraft.dir"), 20);
         JCheckBox sodiumBox = new JCheckBox("Sodium", config.getBoolean("sodium.enabled", true));
+
+        JButton openDirButton = new JButton("Open .paradise");
+        openDirButton.addActionListener(event -> openMinecraftFolder());
+
+        JPanel folderPanel = new JPanel(new BorderLayout(6, 0));
+        folderPanel.add(minecraftDirField, BorderLayout.CENTER);
+        folderPanel.add(openDirButton, BorderLayout.EAST);
 
         JPanel panel = new JPanel(new GridBagLayout());
         panel.add(new JLabel("Java Path:"), settingsConstraints(0, 0));
@@ -337,7 +341,7 @@ public final class LauncherApp {
         panel.add(new JLabel("Java arguments:"), settingsConstraints(0, 1));
         panel.add(javaArgsField, settingsConstraints(1, 1));
         panel.add(new JLabel("Minecraft folder:"), settingsConstraints(0, 2));
-        panel.add(minecraftDirField, settingsConstraints(1, 2));
+        panel.add(folderPanel, settingsConstraints(1, 2));
         panel.add(new JLabel("Optional mods:"), settingsConstraints(0, 3));
         panel.add(sodiumBox, settingsConstraints(1, 3));
 
@@ -401,7 +405,6 @@ public final class LauncherApp {
         addAccountButton.setEnabled(!busy);
         removeAccountButton.setEnabled(!busy && accountBox.getItemCount() > 0);
         settingsButton.setEnabled(!busy);
-        openFolderButton.setEnabled(!busy);
         accountBox.setEnabled(!busy);
         progressBar.setVisible(busy);
         statusLabel.setVisible(busy);
