@@ -118,7 +118,7 @@ public final class LauncherApp {
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                     int h = Math.max(getHeight(), 1);
                     float[] fractions = { 0.0f, 0.15f, 0.35f, 1.0f };
-                    Color[] colors = { Color.WHITE, Color.WHITE, TOMATE_SOFT_PINK, TOMATE_SOFT_PINK };
+                    Color[] colors = { TOMATE_PINK, TOMATE_PINK, TOMATE_SOFT_PINK, TOMATE_SOFT_PINK };
                     LinearGradientPaint gp = new LinearGradientPaint(0, 0, 0, h, fractions, colors);
                     g2.setPaint(gp);
                     g2.fillRect(0, 0, getWidth(), h);
@@ -142,9 +142,11 @@ public final class LauncherApp {
         logoLabel.setPreferredSize(new Dimension(320, 104));
         logoLabel.setHorizontalAlignment(JLabel.CENTER);
         logoLabel.setFont(logoLabel.getFont().deriveFont(Font.BOLD, 22f));
+        logoLabel.setForeground(Color.WHITE);
         panel.add(logoLabel, BorderLayout.NORTH);
         JLabel title = new JLabel("Changelog", JLabel.CENTER);
         title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
+        title.setForeground(Color.WHITE);
         panel.add(title, BorderLayout.SOUTH);
         return panel;
     }

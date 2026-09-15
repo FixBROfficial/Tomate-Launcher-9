@@ -38,8 +38,10 @@ import java.util.Map;
 public final class TomateStarter {
     private static final String GITHUB_REPO = "FixBROfficial/Tomate-Launcher-9";
     private static final String GITHUB_BRANCH = "main";
-    private static final String TREE_API_URL = "https://api.github.com/repos/" + GITHUB_REPO + "/git/trees/" + GITHUB_BRANCH + "?recursive=1";
-    private static final String RAW_CONTENT_URL = "https://raw.githubusercontent.com/" + GITHUB_REPO + "/" + GITHUB_BRANCH + "/";
+    private static final String COMMITS_API_URL = "https://api.github.com/repos/" + GITHUB_REPO + "/commits/" + GITHUB_BRANCH;
+    private static final String RAW_BASE_URL = "https://raw.githubusercontent.com/" + GITHUB_REPO + "/";
+
+    private volatile String latestCommitSha = GITHUB_BRANCH;
 
     private static final Color TOMATE_PINK = Color.decode("#c85398");
     private static final Color TOMATE_LIGHT_PINK = Color.decode("#f8d8ea");
@@ -327,7 +329,13 @@ public final class TomateStarter {
                 }
 
                 Files.createDirectories(target.getParent());
-                httpDownload(RAW_CONTENT_URL + file.path, target);
+                String downloadUrl = RAW_BASE_URL + latestCommitSha + "/" + file.path + "?_t=" + System.currentTimeMillis();
+                httpDownload(downloadUrl, target);
+
+                String downloadedSha = computeGitBlobSha1(target);
+                if (!downloadedSha.equalsIgnoreCase(file.sha)) {
+                    throw new IOException("Falha de integridade: " + file.path + " (esperado " + file.sha + ", recebido " + downloadedSha + ")");
+                }
             }
 
             SwingUtilities.invokeLater(() -> {
@@ -437,7 +445,20 @@ public final class TomateStarter {
     }
 
     private List<RemoteFile> fetchRemoteFileList() throws Exception {
-        String jsonText = httpGetString(TREE_API_URL);
+        // 1. Obtém o commit SHA mais recente do branch main com anti-cache
+        String commitUrl = COMMITS_API_URL + "?_t=" + System.currentTimeMillis();
+        String commitJson = httpGetString(commitUrl);
+        Map<String, Object> commitObj = Json.object(Json.parse(commitJson));
+        String shaCommit = Json.string(commitObj, "sha");
+        if (shaCommit != null && !shaCommit.trim().isEmpty()) {
+            this.latestCommitSha = shaCommit.trim();
+        } else {
+            this.latestCommitSha = GITHUB_BRANCH;
+        }
+
+        // 2. Consulta a árvore de arquivos apontando diretamente para o commit SHA exato
+        String treeUrl = "https://api.github.com/repos/" + GITHUB_REPO + "/git/trees/" + this.latestCommitSha + "?recursive=1&_t=" + System.currentTimeMillis();
+        String jsonText = httpGetString(treeUrl);
         Map<String, Object> root = Json.object(Json.parse(jsonText));
         List<Object> tree = Json.array(root.get("tree"));
 
@@ -483,8 +504,13 @@ public final class TomateStarter {
 
     private static String httpGetString(String url) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+        connection.setUseCaches(false);
+        connection.setDefaultUseCaches(false);
         connection.setRequestProperty("User-Agent", "TomateStarter-Java8");
         connection.setRequestProperty("Accept", "application/json");
+        connection.setRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate");
+        connection.setRequestProperty("Pragma", "no-cache");
+        connection.setRequestProperty("Expires", "0");
         connection.setConnectTimeout(8000);
         connection.setReadTimeout(10000);
 
@@ -508,7 +534,12 @@ public final class TomateStarter {
 
     private static void httpDownload(String url, Path target) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) new URL(url.replace(" ", "%20")).openConnection();
+        connection.setUseCaches(false);
+        connection.setDefaultUseCaches(false);
         connection.setRequestProperty("User-Agent", "TomateStarter-Java8");
+        connection.setRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate");
+        connection.setRequestProperty("Pragma", "no-cache");
+        connection.setRequestProperty("Expires", "0");
         connection.setConnectTimeout(8000);
         connection.setReadTimeout(15000);
 
