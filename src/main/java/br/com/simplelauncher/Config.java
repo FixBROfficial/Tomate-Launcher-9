@@ -85,7 +85,7 @@ final class Config {
     }
 
     private void defaults() {
-        values.setProperty("changelog.url", "https://raw.githubusercontent.com/FixBROfficial/testmods/main/changelog.txt");
+        values.setProperty("changelog.url", "https://fixbrofficial.neocities.org/tomate/changelog");
         values.setProperty("logo.url", "https://github.com/FixBROfficial/testmods/blob/main/TOMATELOGO.png");
         values.setProperty("mods.source.url", "https://github.com/FixBROfficial/testmods/tree/main/mods");
         values.setProperty("configs.source.url", "https://github.com/FixBROfficial/testmods/tree/main/config");

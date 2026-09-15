@@ -12,7 +12,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+import javax.swing.JEditorPane;
+import javax.swing.event.HyperlinkEvent;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.imageio.ImageIO;
@@ -43,7 +44,7 @@ public final class LauncherApp {
     private final Config config;
     private final AccountStore accounts;
     private final JFrame frame = new JFrame("Tomate Launcher");
-    private final JTextArea changelog = new JTextArea();
+    private final JEditorPane changelog = new JEditorPane();
     private final JComboBox<String> accountBox = new JComboBox<>();
     private final JButton playButton = new JButton("PLAY");
     private final JButton addAccountButton = new JButton("Offline account");
@@ -101,11 +102,21 @@ public final class LauncherApp {
         frame.setLocationRelativeTo(null);
 
         changelog.setEditable(false);
-        changelog.setLineWrap(true);
-        changelog.setWrapStyleWord(true);
-        changelog.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
+        changelog.setContentType("text/html");
+        changelog.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+        changelog.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
         changelog.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
         changelog.setBackground(Color.WHITE);
+        changelog.addHyperlinkListener(e -> {
+            if (HyperlinkEvent.EventType.ACTIVATED.equals(e.getEventType())) {
+                try {
+                    if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE) && e.getURL() != null) {
+                        Desktop.getDesktop().browse(e.getURL().toURI());
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+        });
 
         JPanel content = new JPanel(new BorderLayout(12, 12)) {
             @Override
@@ -144,16 +155,20 @@ public final class LauncherApp {
         logoLabel.setForeground(Color.WHITE);
         panel.add(logoLabel, BorderLayout.NORTH);
 
-        JPanel titleBar = new JPanel(new BorderLayout());
-        titleBar.setBackground(Color.BLACK);
-        titleBar.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
+        JPanel titleWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        titleWrapper.setOpaque(false);
 
-        JLabel title = new JLabel("Changelog", JLabel.CENTER);
-        title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
+        JPanel titleBadge = new JPanel(new BorderLayout());
+        titleBadge.setBackground(Color.BLACK);
+        titleBadge.setBorder(BorderFactory.createEmptyBorder(4, 16, 4, 16));
+
+        JLabel title = new JLabel("Changelog");
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 15f));
         title.setForeground(Color.WHITE);
 
-        titleBar.add(title, BorderLayout.CENTER);
-        panel.add(titleBar, BorderLayout.SOUTH);
+        titleBadge.add(title, BorderLayout.CENTER);
+        titleWrapper.add(titleBadge);
+        panel.add(titleWrapper, BorderLayout.SOUTH);
         return panel;
     }
 
@@ -298,11 +313,15 @@ public final class LauncherApp {
     }
 
     private void loadChangelog() {
-        changelog.setText("Loading changelog...");
+        changelog.setText("<html><body style='font-family:sans-serif;padding:8px;'><p>Loading changelog...</p></body></html>");
         changelog.setCaretPosition(0);
         Java8.startThread(() -> {
             try {
-                String body = Java8.httpGetString(Java8.rawGitHubUrl(config.get("changelog.url")));
+                String changelogUrl = config.get("changelog.url");
+                if (Java8.isBlank(changelogUrl) || changelogUrl.contains("changelog.txt")) {
+                    changelogUrl = "https://fixbrofficial.neocities.org/tomate/changelog";
+                }
+                String body = Java8.httpGetString(Java8.rawGitHubUrl(changelogUrl));
                 SwingUtilities.invokeLater(() -> {
                     changelog.setText(body);
                     changelog.setCaretPosition(0);
@@ -310,7 +329,8 @@ public final class LauncherApp {
                 });
             } catch (Exception exception) {
                 SwingUtilities.invokeLater(() -> {
-                    changelog.setText("Could not load the changelog.\n\n" + exception.getMessage());
+                    changelog.setText("<html><body style='font-family:sans-serif;padding:8px;'><p>Could not load the changelog.</p><p>"
+                            + exception.getMessage() + "</p></body></html>");
                     changelog.setCaretPosition(0);
                 });
             }
