@@ -272,12 +272,20 @@ public final class LauncherApp {
 
     private void loadChangelog() {
         changelog.setText("Loading changelog...");
+        changelog.setCaretPosition(0);
         Java8.startThread(() -> {
             try {
                 String body = Java8.httpGetString(Java8.rawGitHubUrl(config.get("changelog.url")));
-                SwingUtilities.invokeLater(() -> changelog.setText(body));
+                SwingUtilities.invokeLater(() -> {
+                    changelog.setText(body);
+                    changelog.setCaretPosition(0);
+                    SwingUtilities.invokeLater(() -> changelog.setCaretPosition(0));
+                });
             } catch (Exception exception) {
-                SwingUtilities.invokeLater(() -> changelog.setText("Could not load the changelog.\n\n" + exception.getMessage()));
+                SwingUtilities.invokeLater(() -> {
+                    changelog.setText("Could not load the changelog.\n\n" + exception.getMessage());
+                    changelog.setCaretPosition(0);
+                });
             }
         });
     }
