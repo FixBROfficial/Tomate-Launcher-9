@@ -45,8 +45,12 @@ public final class LauncherApp {
     private final AccountStore accounts;
     private final JFrame frame = new JFrame("Tomate Launcher");
     private final JEditorPane changelog = new JEditorPane();
+    private final JScrollPane changelogScrollPane = new JScrollPane(changelog);
+    private final JPanel changelogTitleWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
     private final JComboBox<String> accountBox = new JComboBox<>();
     private final JButton playButton = new JButton("PLAY");
+    private Color defaultPlayButtonForeground;
+    private volatile Process gameProcess;
     private final JButton addAccountButton = new JButton("Offline account");
     private final JButton removeAccountButton = new JButton("Delete");
     private final JButton settingsButton = new JButton("Settings");
@@ -101,6 +105,8 @@ public final class LauncherApp {
         frame.setMinimumSize(new Dimension(900, 560));
         frame.setLocationRelativeTo(null);
 
+        defaultPlayButtonForeground = playButton.getForeground();
+
         changelog.setEditable(false);
         changelog.setContentType("text/html");
         changelog.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
@@ -139,7 +145,7 @@ public final class LauncherApp {
         };
         content.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
         content.add(topPanel(), BorderLayout.NORTH);
-        content.add(new JScrollPane(changelog), BorderLayout.CENTER);
+        content.add(changelogScrollPane, BorderLayout.CENTER);
         content.add(bottomBar(), BorderLayout.SOUTH);
 
         frame.setContentPane(content);
@@ -155,8 +161,8 @@ public final class LauncherApp {
         logoLabel.setForeground(Color.WHITE);
         panel.add(logoLabel, BorderLayout.NORTH);
 
-        JPanel titleWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-        titleWrapper.setOpaque(false);
+        changelogTitleWrapper.setOpaque(false);
+        changelogTitleWrapper.removeAll();
 
         JPanel titleBadge = new JPanel(new BorderLayout());
         titleBadge.setBackground(Color.BLACK);
@@ -167,8 +173,8 @@ public final class LauncherApp {
         title.setForeground(Color.WHITE);
 
         titleBadge.add(title, BorderLayout.CENTER);
-        titleWrapper.add(titleBadge);
-        panel.add(titleWrapper, BorderLayout.SOUTH);
+        changelogTitleWrapper.add(titleBadge);
+        panel.add(changelogTitleWrapper, BorderLayout.SOUTH);
         return panel;
     }
 
@@ -184,7 +190,7 @@ public final class LauncherApp {
 
         playButton.setPreferredSize(new Dimension(220, 54));
         playButton.setFont(playButton.getFont().deriveFont(Font.BOLD, 22f));
-        playButton.addActionListener(event -> play());
+        playButton.addActionListener(event -> onPlayOrKillClicked());
 
         progressBar.setIndeterminate(true);
         progressBar.setVisible(false);
@@ -409,23 +415,89 @@ public final class LauncherApp {
         }
     }
 
+    private void setChangelogVisible(boolean visible) {
+        changelogTitleWrapper.setVisible(visible);
+        changelogScrollPane.setVisible(visible);
+        if (!visible) {
+            changelog.setText("");
+            System.gc();
+        }
+        if (frame.getContentPane() != null) {
+            frame.getContentPane().revalidate();
+            frame.getContentPane().repaint();
+        }
+    }
+
+    private void onPlayOrKillClicked() {
+        Process process = this.gameProcess;
+        if (process != null && process.isAlive()) {
+            killGame();
+            return;
+        }
+        play();
+    }
+
+    private void killGame() {
+        Process process = this.gameProcess;
+        if (process != null && process.isAlive()) {
+            playButton.setEnabled(false);
+            setStatus("Closing Minecraft...");
+            Java8.startThread(() -> {
+                try {
+                    process.destroyForcibly();
+                } catch (Exception ignored) {
+                }
+            });
+        }
+    }
+
     private void play() {
         Object selected = accountBox.getSelectedItem();
         if (selected == null || Java8.isBlank(selected.toString())) {
             addAccount();
             return;
         }
+        setChangelogVisible(false);
         setBusy(true, "Preparing...");
         Java8.startThread(() -> {
             try {
-                new MinecraftLauncher(config, this::setStatus).launch(selected.toString());
-                SwingUtilities.invokeLater(() -> frame.setState(JFrame.ICONIFIED));
+                Process process = new MinecraftLauncher(config, this::setStatus).launch(selected.toString());
+                this.gameProcess = process;
+                SwingUtilities.invokeLater(() -> {
+                    onGameRunning();
+                    frame.setState(JFrame.ICONIFIED);
+                });
+                try {
+                    process.waitFor();
+                } catch (InterruptedException interruptedException) {
+                    Thread.currentThread().interrupt();
+                }
             } catch (Exception exception) {
                 SwingUtilities.invokeLater(() -> showError("Could not open Minecraft.", exception));
             } finally {
-                SwingUtilities.invokeLater(() -> setBusy(false, " "));
+                this.gameProcess = null;
+                SwingUtilities.invokeLater(this::onGameFinished);
             }
         });
+    }
+
+    private void onGameRunning() {
+        progressBar.setVisible(false);
+        statusLabel.setText("Minecraft is running");
+        statusLabel.setVisible(true);
+        playButton.setText("Kill");
+        playButton.setForeground(new Color(220, 30, 30));
+        playButton.setEnabled(true);
+    }
+
+    private void onGameFinished() {
+        playButton.setText("PLAY");
+        if (defaultPlayButtonForeground != null) {
+            playButton.setForeground(defaultPlayButtonForeground);
+        }
+        setBusy(false, " ");
+        setChangelogVisible(true);
+        loadChangelog();
     }
 
     private void setBusy(boolean busy, String status) {

@@ -25,7 +25,7 @@ final class MinecraftLauncher {
         this.status = status;
     }
 
-    void launch(String nickname) throws Exception {
+    Process launch(String nickname) throws Exception {
         GameInstaller.Installation installation = new GameInstaller(config, status).prepare();
         status.accept("Checking initial files...");
         new InitialFileInstaller(config, status).installMissing();
@@ -70,6 +70,7 @@ final class MinecraftLauncher {
                 logWindow.append("Process reading interrupted.");
             }
         });
+        return process;
     }
 
     private void readLog(InputStream stream, GameLogWindow logWindow) {
