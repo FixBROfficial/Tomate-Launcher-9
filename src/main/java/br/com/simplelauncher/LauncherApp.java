@@ -18,6 +18,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.imageio.ImageIO;
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Dimension;
@@ -47,6 +48,8 @@ public final class LauncherApp {
     private final JEditorPane changelog = new JEditorPane();
     private final JScrollPane changelogScrollPane = new JScrollPane(changelog);
     private final JPanel changelogTitleWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+    private final CardLayout centerLayout = new CardLayout();
+    private final JPanel centerPanel = new JPanel(centerLayout);
     private final JComboBox<String> accountBox = new JComboBox<>();
     private final JButton playButton = new JButton("PLAY");
     private Color defaultPlayButtonForeground;
@@ -143,9 +146,29 @@ public final class LauncherApp {
                 }
             }
         };
+        centerPanel.setOpaque(false);
+        centerPanel.removeAll();
+        centerPanel.add(changelogScrollPane, "CHANGELOG");
+
+        JPanel ramSavedPanel = new JPanel(new GridBagLayout());
+        ramSavedPanel.setOpaque(false);
+
+        JPanel ramBadge = new JPanel(new BorderLayout());
+        ramBadge.setBackground(Color.BLACK);
+        ramBadge.setBorder(BorderFactory.createEmptyBorder(10, 24, 10, 24));
+
+        JLabel ramLabel = new JLabel("(Changelog escondido para economia de Memoria RAM)");
+        ramLabel.setFont(ramLabel.getFont().deriveFont(Font.BOLD, 15f));
+        ramLabel.setForeground(Color.WHITE);
+        ramBadge.add(ramLabel, BorderLayout.CENTER);
+
+        ramSavedPanel.add(ramBadge);
+        centerPanel.add(ramSavedPanel, "RAM_SAVED");
+        centerLayout.show(centerPanel, "CHANGELOG");
+
         content.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
         content.add(topPanel(), BorderLayout.NORTH);
-        content.add(changelogScrollPane, BorderLayout.CENTER);
+        content.add(centerPanel, BorderLayout.CENTER);
         content.add(bottomBar(), BorderLayout.SOUTH);
 
         frame.setContentPane(content);
@@ -417,8 +440,10 @@ public final class LauncherApp {
 
     private void setChangelogVisible(boolean visible) {
         changelogTitleWrapper.setVisible(visible);
-        changelogScrollPane.setVisible(visible);
-        if (!visible) {
+        if (visible) {
+            centerLayout.show(centerPanel, "CHANGELOG");
+        } else {
+            centerLayout.show(centerPanel, "RAM_SAVED");
             changelog.setText("");
             System.gc();
         }
