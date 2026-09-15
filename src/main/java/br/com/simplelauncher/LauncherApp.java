@@ -29,6 +29,7 @@ import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.FlowLayout;
+import java.awt.LinearGradientPaint;
 import java.awt.RenderingHints;
 import java.net.URI;
 import java.nio.file.Path;
@@ -114,9 +115,12 @@ public final class LauncherApp {
                 try {
                     g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    GradientPaint gp = new GradientPaint(0, 0, Color.WHITE, 0, getHeight(), TOMATE_LIGHT_PINK);
+                    int h = Math.max(getHeight(), 1);
+                    float[] fractions = { 0.0f, 0.15f, 0.35f, 1.0f };
+                    Color[] colors = { Color.WHITE, Color.WHITE, TOMATE_LIGHT_PINK, TOMATE_LIGHT_PINK };
+                    LinearGradientPaint gp = new LinearGradientPaint(0, 0, 0, h, fractions, colors);
                     g2.setPaint(gp);
-                    g2.fillRect(0, 0, getWidth(), getHeight());
+                    g2.fillRect(0, 0, getWidth(), h);
                 } finally {
                     g2.dispose();
                 }
