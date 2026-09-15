@@ -9,9 +9,9 @@ if not exist out mkdir out
 javac -encoding UTF-8 -source 1.8 -target 1.8 -d out src\main\java\br\com\simplelauncher\*.java
 if errorlevel 1 exit /b %errorlevel%
 
-"%JAR_TOOL%" --create --file TomateLauncher8.jar --main-class br.com.simplelauncher.LauncherApp -C out .
+"%JAR_TOOL%" --create --file TomateLauncher9.jar --main-class br.com.simplelauncher.LauncherApp -C out .
 if errorlevel 1 exit /b %errorlevel%
 
 echo Build Java 8 pronta:
-echo %cd%\TomateLauncher8.jar
+echo %cd%\TomateLauncher9.jar
 pause

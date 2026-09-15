@@ -360,7 +360,7 @@ public final class TomateStarter {
         if (Files.exists(mainClassFile)) {
             return true;
         }
-        Path jarFile = launcherDir.resolve("TomateLauncher8.jar");
+        Path jarFile = launcherDir.resolve("TomateLauncher9.jar");
         return Files.exists(jarFile);
     }
 
