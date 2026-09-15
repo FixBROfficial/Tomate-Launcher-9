@@ -21,11 +21,15 @@ import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.FlowLayout;
+import java.awt.RenderingHints;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -40,7 +44,6 @@ public final class LauncherApp {
     private final JTextArea changelog = new JTextArea();
     private final JComboBox<String> accountBox = new JComboBox<>();
     private final JButton playButton = new JButton("PLAY");
-    private final JButton updateButton = new JButton("Check updates");
     private final JButton addAccountButton = new JButton("Offline account");
     private final JButton removeAccountButton = new JButton("Delete");
     private final JButton settingsButton = new JButton("Settings");
@@ -103,8 +106,22 @@ public final class LauncherApp {
         changelog.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
         changelog.setBackground(Color.WHITE);
 
-        JPanel content = new JPanel(new BorderLayout(12, 12));
-        content.setBackground(TOMATE_LIGHT_PINK);
+        JPanel content = new JPanel(new BorderLayout(12, 12)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                try {
+                    g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    GradientPaint gp = new GradientPaint(0, 0, Color.WHITE, 0, getHeight(), TOMATE_LIGHT_PINK);
+                    g2.setPaint(gp);
+                    g2.fillRect(0, 0, getWidth(), getHeight());
+                } finally {
+                    g2.dispose();
+                }
+            }
+        };
         content.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
         content.add(topPanel(), BorderLayout.NORTH);
         content.add(new JScrollPane(changelog), BorderLayout.CENTER);
@@ -116,7 +133,7 @@ public final class LauncherApp {
 
     private JPanel topPanel() {
         JPanel panel = new JPanel(new BorderLayout(0, 8));
-        panel.setBackground(TOMATE_LIGHT_PINK);
+        panel.setOpaque(false);
         logoLabel.setPreferredSize(new Dimension(320, 104));
         logoLabel.setHorizontalAlignment(JLabel.CENTER);
         logoLabel.setFont(logoLabel.getFont().deriveFont(Font.BOLD, 22f));
@@ -135,7 +152,6 @@ public final class LauncherApp {
         GridBagConstraints center = constraints(1, 0, 0.5, GridBagConstraints.CENTER);
         GridBagConstraints right = constraints(2, 0, 0.25, GridBagConstraints.EAST);
 
-        updateButton.addActionListener(event -> checkUpdates());
         settingsButton.addActionListener(event -> openSettings());
         openFolderButton.addActionListener(event -> openMinecraftFolder());
 
@@ -174,7 +190,6 @@ public final class LauncherApp {
 
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
         leftPanel.setBackground(TOMATE_PINK);
-        leftPanel.add(updateButton);
         leftPanel.add(openFolderButton);
         leftPanel.add(settingsButton);
 
@@ -302,25 +317,6 @@ public final class LauncherApp {
         return "https://raw.githubusercontent.com/" + parts[0] + "/" + parts[1] + "/" + parts[3] + "/" + parts[4];
     }
 
-    private void checkUpdates() {
-        updateButton.setEnabled(false);
-        updateButton.setText("Updating...");
-        Java8.startThread(() -> {
-            try {
-                ModUpdater updater = new ModUpdater(config);
-                ModUpdater.Result result = updater.sync();
-                InitialFileInstaller.Result initialFiles = new InitialFileInstaller(config).installMissing();
-                SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(frame, result.message() + "\n\n" + initialFiles.message()));
-            } catch (Exception exception) {
-                SwingUtilities.invokeLater(() -> showError("Failed to update files.", exception));
-            } finally {
-                SwingUtilities.invokeLater(() -> {
-                    updateButton.setEnabled(true);
-                    updateButton.setText("Check updates");
-                });
-            }
-        });
-    }
 
     private void openSettings() {
         JTextField javaPathField = new JTextField(config.get("java.path"), 28);
@@ -395,7 +391,6 @@ public final class LauncherApp {
 
     private void setBusy(boolean busy, String status) {
         playButton.setEnabled(!busy);
-        updateButton.setEnabled(!busy);
         addAccountButton.setEnabled(!busy);
         removeAccountButton.setEnabled(!busy && accountBox.getItemCount() > 0);
         settingsButton.setEnabled(!busy);
