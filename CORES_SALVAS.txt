@@ -1,0 +1,42 @@
+================================================================================
+INFORMACOES DE CORES ORIGINAIS - TOMATE LAUNCHER 9 (TEMA ROSA)
+Salvo em: 16/10/2026
+================================================================================
+
+1. Cores Principais do Launcher (LauncherApp.java):
+   - TOMATE_PINK       = #c85398 (RGB: 200, 83, 152)
+     Uso: Barra inferior de botoes, paineis dos botoes (playPanel, rightPanel, statusPanel)
+          e topo do degrade de fundo (primeiro 1/3 da tela).
+   
+   - TOMATE_SOFT_PINK  = #df8ebd (RGB: 223, 142, 189)
+     Uso: Parte inferior do degrade de fundo (2/3 inferiores da tela, atras do changelog).
+   
+   - TOMATE_LIGHT_PINK = #f8d8ea (RGB: 248, 216, 234)
+     Uso: Rosa claro de destaque/paleta suave.
+   
+   - KILL_RED          = #dc1e1e (RGB: 220, 30, 30)
+     Uso: Cor do texto do botao "Kill" enquanto o Minecraft esta rodando.
+
+2. Cores do Starter (TomateStarter.java):
+   - TOMATE_PINK       = #c85398 (RGB: 200, 83, 152)
+     Uso: Titulo principal, barra de progresso, borda e botao "Atualizar agora".
+   
+   - TOMATE_LIGHT_PINK = #f8d8ea (RGB: 248, 216, 234)
+     Uso: Rosa suave complementar.
+   
+   - BG_DARK           = #202026
+     Uso: Fundo da janela do starter.
+   
+   - BG_CARD           = #2a2a33
+     Uso: Fundo dos cards e paineis do starter.
+   
+   - TEXT_WHITE        = #f0f0f5
+     Uso: Texto principal.
+   
+   - TEXT_MUTED        = #a5a5b5
+     Uso: Texto secundario / botao secundario.
+
+3. Degradê de fundo original (LauncherApp.java):
+   - Fractions: { 0.0f, 0.15f, 0.35f, 1.0f }
+   - Colors:    { #c85398, #c85398, #df8ebd, #df8ebd }
+================================================================================

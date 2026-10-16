@@ -43,10 +43,17 @@ public final class TomateStarter {
 
     private volatile String latestCommitSha = GITHUB_BRANCH;
 
-    private static final Color TOMATE_PINK = Color.decode("#c85398");
-    private static final Color TOMATE_LIGHT_PINK = Color.decode("#f8d8ea");
-    private static final Color BG_DARK = Color.decode("#202026");
-    private static final Color BG_CARD = Color.decode("#2a2a33");
+    // =========================================================================
+    // INFORMACOES DE CORES SALVAS (TEMA ROSA ORIGINAL):
+    // TOMATE_PINK_ORIGINAL       = #c85398
+    // TOMATE_LIGHT_PINK_ORIGINAL = #f8d8ea
+    // =========================================================================
+
+    // Tema Preto e Branco:
+    private static final Color TOMATE_PINK = Color.decode("#ffffff");
+    private static final Color TOMATE_LIGHT_PINK = Color.decode("#e0e0e0");
+    private static final Color BG_DARK = Color.decode("#18181a");
+    private static final Color BG_CARD = Color.decode("#242428");
     private static final Color TEXT_WHITE = Color.decode("#f0f0f5");
     private static final Color TEXT_MUTED = Color.decode("#a5a5b5");
 
@@ -181,7 +188,7 @@ public final class TomateStarter {
         ));
         updateLaterButton.addActionListener(e -> launchLauncher());
 
-        styleButton(updateNowButton, TOMATE_PINK, Color.WHITE, BorderFactory.createEmptyBorder(10, 24, 10, 24));
+        styleButton(updateNowButton, TOMATE_PINK, Color.BLACK, BorderFactory.createEmptyBorder(10, 24, 10, 24));
         updateNowButton.addActionListener(e -> startDownload());
 
         buttonPanel.add(updateLaterButton);

@@ -33,14 +33,29 @@ import java.awt.Insets;
 import java.awt.FlowLayout;
 import java.awt.LinearGradientPaint;
 import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public final class LauncherApp {
-    private static final Color TOMATE_PINK = Color.decode("#c85398");
-    private static final Color TOMATE_LIGHT_PINK = Color.decode("#f8d8ea");
-    private static final Color TOMATE_SOFT_PINK = Color.decode("#df8ebd");
+    // =========================================================================
+    // INFORMACOES DE CORES SALVAS (TEMA ROSA ORIGINAL):
+    // TOMATE_PINK_ORIGINAL       = #c85398 (Barra inferior e topo do degrade)
+    // TOMATE_LIGHT_PINK_ORIGINAL = #f8d8ea (Rosa claro)
+    // TOMATE_SOFT_PINK_ORIGINAL  = #df8ebd (Fundo suave do degrade)
+    // KILL_RED_ORIGINAL          = #dc1e1e (new Color(220, 30, 30) - Botao Kill)
+    // =========================================================================
+
+    // Tema Preto e Branco (Monocromatico):
+    private static final Color THEME_PRIMARY = Color.decode("#1c1c1c");    // Barra inferior e topo
+    private static final Color THEME_SECONDARY = Color.decode("#363636");  // Fundo degrade
+    private static final Color THEME_LIGHT = Color.decode("#e0e0e0");      // Tom claro
+
+    // Aliases para manter compatibilidade com as referencias existentes:
+    private static final Color TOMATE_PINK = THEME_PRIMARY;
+    private static final Color TOMATE_LIGHT_PINK = THEME_LIGHT;
+    private static final Color TOMATE_SOFT_PINK = THEME_SECONDARY;
     private final Path root = Paths.get("").toAbsolutePath();
     private final Config config;
     private final AccountStore accounts;
@@ -114,8 +129,12 @@ public final class LauncherApp {
         changelog.setContentType("text/html");
         changelog.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
         changelog.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
-        changelog.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
-        changelog.setBackground(Color.WHITE);
+        changelog.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        changelog.setBackground(Color.BLACK);
+        changelog.setForeground(Color.WHITE);
+        changelogScrollPane.setBackground(Color.BLACK);
+        changelogScrollPane.getViewport().setBackground(Color.BLACK);
+        changelogScrollPane.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
         changelog.addHyperlinkListener(e -> {
             if (HyperlinkEvent.EventType.ACTIVATED.equals(e.getEventType())) {
                 try {
@@ -268,15 +287,43 @@ public final class LauncherApp {
         Java8.startThread(() -> {
             try {
                 Image image = ImageIO.read(URI.create(Java8.rawGitHubUrl(config.get("logo.url"))).toURL());
-                Image scaled = image.getScaledInstance(320, 104, Image.SCALE_SMOOTH);
+                if (image == null) {
+                    throw new Exception("Logo image not found");
+                }
+                BufferedImage bwLogo = toGrayscale(image, 320, 104);
                 SwingUtilities.invokeLater(() -> {
                     logoLabel.setText("");
-                    logoLabel.setIcon(new ImageIcon(scaled));
+                    logoLabel.setIcon(new ImageIcon(bwLogo));
                 });
             } catch (Exception exception) {
                 SwingUtilities.invokeLater(() -> logoLabel.setText("Tomate Launcher"));
             }
         });
+    }
+
+    private static BufferedImage toGrayscale(Image src, int width, int height) {
+        BufferedImage bimg = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = bimg.createGraphics();
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g2.drawImage(src, 0, 0, width, height, null);
+        g2.dispose();
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int rgba = bimg.getRGB(x, y);
+                int a = (rgba >> 24) & 0xff;
+                if (a == 0) {
+                    continue;
+                }
+                int r = (rgba >> 16) & 0xff;
+                int g = (rgba >> 8) & 0xff;
+                int b = rgba & 0xff;
+                int lum = (int) (0.299 * r + 0.587 * g + 0.114 * b);
+                int grayRgba = (a << 24) | (lum << 16) | (lum << 8) | lum;
+                bimg.setRGB(x, y, grayRgba);
+            }
+        }
+        return bimg;
     }
 
     private GridBagConstraints constraints(int x, int y, double weight, int anchor) {
@@ -342,7 +389,7 @@ public final class LauncherApp {
     }
 
     private void loadChangelog() {
-        changelog.setText("<html><body style='font-family:sans-serif;padding:8px;'><p>Loading changelog...</p></body></html>");
+        changelog.setText("<html><body style='font-family:sans-serif;padding:8px;background-color:black;color:white;'><p>Loading changelog...</p></body></html>");
         changelog.setCaretPosition(0);
         Java8.startThread(() -> {
             try {
@@ -358,7 +405,7 @@ public final class LauncherApp {
                 });
             } catch (Exception exception) {
                 SwingUtilities.invokeLater(() -> {
-                    changelog.setText("<html><body style='font-family:sans-serif;padding:8px;'><p>Could not load the changelog.</p><p>"
+                    changelog.setText("<html><body style='font-family:sans-serif;padding:8px;background-color:black;color:white;'><p>Could not load the changelog.</p><p>"
                             + exception.getMessage() + "</p></body></html>");
                     changelog.setCaretPosition(0);
                 });
@@ -511,7 +558,7 @@ public final class LauncherApp {
         statusLabel.setText("Minecraft is running");
         statusLabel.setVisible(true);
         playButton.setText("Kill");
-        playButton.setForeground(new Color(220, 30, 30));
+        playButton.setForeground(Color.BLACK);
         playButton.setEnabled(true);
     }
 
